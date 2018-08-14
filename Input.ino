@@ -22,10 +22,6 @@ char send_buffer[65];
 //#define DEBUG
 //#endif
 
-#define ZERO  '0'
-#define ONE    '1'
-#define SPLIT '\n'
-
 void setup()
 {
 	// Set up debug led
@@ -34,9 +30,6 @@ void setup()
 	deadzone_end = 7;
 	ess_end = 50;
 	input_counter = 0;
-
-	// Start debug serial
-	Serial.begin(115200);
 }
 
 int8_t remap(int8_t in) {
@@ -57,8 +50,6 @@ int8_t remap(int8_t in) {
 
 void setup_mode() {
 	gcc.cyAxis = 0;
-
-	char buffer[256];
 
 	if (gcc.r) {
 		in_setup_mode = false;
@@ -84,10 +75,6 @@ void setup_mode() {
 			ess_end -= 1;
 		}
 	}
-
-	sprintf(buffer, "Deadzone: %d\tEss: %d", deadzone_end, ess_end);
-	Serial.println(buffer);
-
 	gcc.buttons0 = gcc.buttons1 = 0;
 	gcc.xAxis = deadzone_end + 127;
 	gcc.yAxis = ess_end + 127;
@@ -103,78 +90,6 @@ void modify_inputs() {
 
 	gcc.xAxis = ax + 128;
 	gcc.yAxis = ay + 128;
-}
-
-void send_inputs() {
-	switch (input_counter)
-	{
-	case 0:
-		send_buffer[0] = ZERO;
-		send_buffer[1] = ZERO;
-		send_buffer[2] = ZERO;
-		send_buffer[3] = gcc_send.start ? ONE : ZERO;
-		send_buffer[4] = gcc_send.y ? ONE : ZERO;
-		send_buffer[5] = gcc_send.x ? ONE : ZERO;
-		send_buffer[6] = gcc_send.b ? ONE : ZERO;
-		send_buffer[7] = gcc_send.a ? ONE : ZERO;
-		input_counter++;
-		break;
-	case 1:
-		send_buffer[8] = ONE;
-		send_buffer[9] = gcc_send.l ? ONE : ZERO;
-		send_buffer[10] = gcc_send.r ? ONE : ZERO;
-		send_buffer[11] = gcc_send.z ? ONE : ZERO;
-		send_buffer[12] = gcc_send.dup ? ONE : ZERO;
-		send_buffer[13] = gcc_send.ddown ? ONE : ZERO;
-		send_buffer[14] = gcc_send.dright ? ONE : ZERO;
-		send_buffer[15] = gcc_send.dleft ? ONE : ZERO;
-		input_counter++;
-		break;
-	case 2:
-		for (unsigned int i = 0; i < 8; i++) {
-			send_buffer[(8 * input_counter) + i] = (gcc_send.raw8[2] & (1 << i)) ? ONE : ZERO;
-		}
-		input_counter++;
-		break;
-	case 3:
-		for (unsigned int i = 0; i < 8; i++) {
-			send_buffer[(8 * input_counter) + i] = (gcc_send.raw8[2] & (1 << i)) ? ONE : ZERO;
-		}
-		input_counter++;
-		break;
-	case 4:
-		for (unsigned int i = 0; i < 8; i++) {
-			send_buffer[(8 * input_counter) + i] = (gcc_send.raw8[2] & (1 << i)) ? ONE : ZERO;
-		}
-		input_counter++;
-		break;
-	case 5:
-		for (unsigned int i = 0; i < 8; i++) {
-			send_buffer[(8 * input_counter) + i] = (gcc_send.raw8[2] & (1 << i)) ? ONE : ZERO;
-		}
-		input_counter++;
-		break;
-	case 6:
-		for (unsigned int i = 0; i < 8; i++) {
-			send_buffer[(8 * input_counter) + i] = (gcc_send.raw8[2] & (1 << i)) ? ONE : ZERO;
-		}
-		input_counter++;
-		break;
-	case 7:
-		for (unsigned int i = 0; i < 8; i++) {
-			send_buffer[(8 * input_counter) + i] = (gcc_send.raw8[2] & (1 << i)) ? ONE : ZERO;
-		}
-		send_buffer[64] = '\n';
-		input_counter++;
-		break;
-	case 8:
-		Serial.write(send_buffer);
-		gcc_send = gcc;
-		input_counter = 0;
-		break;
-	default:
-		break;
-	}
 }
 
 void loop()
@@ -199,7 +114,6 @@ void loop()
 		modify_inputs();
 	}
 	gcc_last = gcc;
-	//send_inputs();
 	console.write(gcc);
 	interrupts();
 }
